@@ -1,68 +1,217 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Simple React Chrome Extension Starter
 
-## Available Scripts
 
-In the project directory, you can run:
+### Why?
 
-### `npm start`
+The Yeoman [generator-chrome-extension](https://github.com/yeoman/generator-chrome-extension) is simple and great! If you don't need React I definitely recommend it.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+That being said I wanted to use React, I found many boilerplate but they were either too complex( lot of extra stuff ), had too many redundancies in the build process ( building popup, background, etc.. as separate apps) or a non-intuitive file structure.
+So after a 3 days of frustration I decided to just make a simple boilerplate :)
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+### How does it works?
 
-### `npm test`
+This Repo is simply an ejected [CRA](https://github.com/facebookincubator/create-react-app) with the slightly modified Yeoman generated chrome extension inside the *public* and some glue in between.
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### -> Production
 
-### `npm run build`
+The production build process is fairly straight forward and pretty much works out of the box - the **build** folder is then loaded as an Unpacked Extension in Chrome
+Run `Yarn build`
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### -> Development
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+In Dev mode, the chrome extension will be loading file from the **Webpack-dev-server** at localhost:3000 - If you see nothing displayed that would most likely be because of the server isn't running.
+Load the **public** folder as an unpacked Extension
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Please manually reload the app if you modify one of the **manisfest.json**
 
-### `npm run eject`
+#### -> Packaging
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+ ```javascript
+yarn build
+yarn keygen  // create the key.pem file
+yarn compress  // compress for production (output both .zip and .crx)
+yarn compress  --addversion //compress with version in name
+```
+>> Note I believe the release folder should not be tracked via git because the zip and crx contain your generated key.pem
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### Folder Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```
+├── build/
+├── config/
+├── node_modules/
+├── public                         --> Point to this when loading the Unpacked from chrome during development
+│   ├── _locales
+│   │   └── en
+│   │       └── messages.json       --> Modify this
+│   ├── favicon.ico                 --> not needed but still good to have
+│   ├── manifest.json
+│   ├── manifest.prod.json
+│   ├── popup.html
+│   ├── options.html
+│   ├── background.html             --> do not modify this
+│   └── static
+│       └── media                   --> all the assets
+│           ├── icon-128.png        --> the extension icons
+│           ├── icon-16.png
+│           ├── icon-19.png
+│           └── icon-38.png
+├── src
+│   ├── App.css
+│   ├── App.js
+│   ├── App.test.js
+│   ├── background
+│   │   └── index.js
+│   ├── contentscript
+│   │   └── index.js
+│   ├── index.css
+│   ├── index.js
+│   ├── logo.svg
+│   ├── options
+│   │   └── index.js
+│   ├── popup
+│   │   └── index.js
+│   │
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
+TODO:
+- <s>config hot reload</s>
+- <s>add write-file-webpack-plugin -> write to a dev/temp folder </s>
+- <s>enable reload of chrome app extension</s>
+- remove obsolete files
+- <s> fully integrate contentScript </s>
+- fully integrate option
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
 
-### Analyzing the Bundle Size
+  Inspired by:
+  - https://github.com/yeoman/generator-chrome-extension
+  - https://github.com/jhen0409/react-chrome-extension-boilerplate
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
 
-### Making a Progressive Web App
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+<hr/>
 
-### Advanced Configuration
+## personal notes on how i made this
+- create regular react app
+- eject app
+- install copy-webpack-plugin' from npm
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+- add an app & a background entry to the webpack.config files
+- add the copywebpackplugin at the end of list of plugins
 
-### Deployment
+```
+new CopyWebpackPlugin([
+      { from: 'public/static' }
+    ]),
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
 
-### `npm run build` fails to minify
+- update the public/manifest.json file
+    - watchout for where you put icons - static/media/
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+- create your Yeoman Chrome extension inside /public/temp
+
+- create 2 folders : options and popup
+- clone the content of the CRA public/index.html in 2 new files in the public folders: options.html, popup.html
+  - the injected bundle file for each will be manually added here - we could mess with the webpack.configs some more but for simplicity sake we wont
+
+
+
+- configure eslint to not crash when encountering *chrome* references in our code - add this to package.json
+```
+  "eslintConfig": {
+    "extends": "react-app",
+    "env": {
+      "node": true,
+      "browser": true
+    },
+    "globals": {
+      "chrome": true
+    },
+    "rules": {
+      "eol-last": 0,
+      "quotes": [
+        2,
+        "single"
+      ]
+    }
+  }
+  ```
+
+
+```registerServiceWorker.js``` is to be use solely during development, see CRA page
+
+
+```/**
+ * This chrome Extension is setup with 2 entry points
+ * the FrontEnd  in src/popup/index.js
+ * and the BackEnd in src/backgound/index.js
+ */
+ ```
+ .babelrc seems to get overriden when running yarn ... not sure why... i didn't mofified anything in regard to babel except adding the runtime plugin. I blame the ejected CRA for that :P
+```
+
+{
+  "presets": [
+    "env",
+    "react",
+    "stage-0"
+  ],
+  "plugins": [
+    "transform-class-properties",
+    "transform-decorators",
+    "transform-react-constant-elements",
+    "transform-react-inline-elements",
+    "transform-runtime"
+  ]
+}
+```
+
+https://developer.chrome.com/extensions/manifest#web_accessible_resources
+
+### Contentscript not updating??
+
+In dev mode, when **contentscript** is update - the entire chrome app needs to be reloaded or the old version would still be used. I believe it's because the dev mode Manifest.json is referencing contentscript.bundle.js directly and <s>once loaded chrome will cache this</s> anything inside **public/** is considered static and is loaded only once.
+The quick dirty solution is to add the script tab bellow to background.html... however this would run the contentscript code at the same scope as the background app... that's a **HUGE security issue plz don't do this!**
+``` html
+
+<script src="http://localhost:3000/contentscript.bundle.js"></script>
+
+```
+
+A solutions:
+  -  inject it within the iframe, but it looked very ugly to me.
+  - chrome.runtime.reload() ... this needs further investigation to avoid reload loops in dev mode...
+  - use web_accessible_resources and change ["contentscript.bundle.js"] in manifest.json to some kind of contentScriptDevInjector.js script (to be placed under public/) that would inject an html web ressource into the page... crap this is the ifram biz again hmm.. oh well.. will try that later - so in theory each time the app is open.. it should pull the web_ressource and therefore get the latest content script. This would be a dev hack and shouldn't go in the production manifest
+```javascript
+// in manifest.json
+"content_scripts": [
+  {
+    "matches":["http://localhost:3000/*"],
+    "js":["contentScriptDevInjector.js"]
+  }
+],
+
+"web_accessible_resources": [
+    ...,
+    "contentscript.html",
+],
+
+//contentscript.html - not sure yet if contentscript.bundle.js would be available like this but i think this shoudl work...
+<script src="http://localhost:3000/contentscript.bundle.js"></script>
+
+
+// contentScriptDevInjector.js
+var iframe  = document.createElement ('iframe');
+iframe.src  = chrome.extension.getURL ('contentscript.html');
+document.body.appendChild (iframe);
+
+```
+Anyway long story short for now when anything under contentscript/ is modified the app needs to be manually reloaded in chrome via the extension manager page.
+
+
+>
