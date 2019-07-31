@@ -25,4 +25,5 @@ yarn-error.log*
 
 /dist
 /app
+/secret
 

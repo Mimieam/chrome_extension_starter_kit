@@ -2,23 +2,20 @@ const path = require('path');
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CleanWebpackPlugin = require('clean-webpack-plugin'); // use V 1.0.1
-// const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 var LiveReloadPlugin = require('webpack-livereload-plugin');
 // const ChromeManifestPlugin = require('chrome-manifest-plugin');
 const webpackDashboard = require('webpack-dashboard/plugin');
 
-
 const devMode = process.env.NODE_ENV !== 'production'
 const isEnvProduction = process.env.NODE_ENV == 'production'
 
 const PATHS = {
-    // root: path.join(__dirname, ''),
+
     app: path.join(__dirname, 'app'),
     dist: path.join(__dirname, 'dist'),
     public: path.join(__dirname, 'public'),
-
 
     backgroundHtml: path.join(__dirname, 'public/background.html'),
     popupHtml: path.join(__dirname, 'public/popup.html'),
@@ -65,7 +62,11 @@ module.exports = {
     devServer: {
         writeToDisk: true,
         contentBase: PATHS.app,
-        hot: true
+        hot: true,
+        index: "popup.html",
+        compress: true,
+        // host: '0.0.0.0',
+        // port: 3000
     },
 
     watch: devMode ? true : false,
@@ -123,7 +124,7 @@ module.exports = {
         ]
     },
     "plugins": [
-        new CleanWebpackPlugin([PATHS.dist, PATHS.app]),
+        new CleanWebpackPlugin([`${PATHS.dist}/**`, `${PATHS.app}/**`]),
         new LiveReloadPlugin(),
         new webpackDashboard(),
 
@@ -139,17 +140,8 @@ module.exports = {
             })
         }),
 
-
         new webpack.optimize.ModuleConcatenationPlugin(),
         new MiniCssExtractPlugin({filename: "[name]-[contenthash:8].css"}),
-
-        // new CopyWebpackPlugin([
-        //     // context = source dir -  if u add app to the from like 'app/*,*' then a app folder
-        //     {
-        //         from: '**/*.*', to: isEnvProduction? PATHS.dist: PATHS.app,
-        //         context: PATHS.public , ignore: ['**/secrets/**/*', '**/bower_components/**/*'], dot: true
-        //     }
-        // ], {}),
 
         new CopyWebpackPlugin([
             isEnvProduction ?
@@ -157,7 +149,7 @@ module.exports = {
             :{ from: 'public/manifest.json' },
             {
                 from: '**/*.*', to: isEnvProduction? PATHS.dist: PATHS.app,
-                context: PATHS.public , ignore: ['**/secrets/**/*', '**/bower_components/**/*'], dot: true
+                context: PATHS.public , ignore: ['**/secrets/**/*', '**/manifest*'], dot: true
             }
         ]),
     ]

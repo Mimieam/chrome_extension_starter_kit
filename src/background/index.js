@@ -47,8 +47,8 @@ chrome.storage.local.get('todos', (obj) => {
 });
 
 
-chrome.runtime.onInstalled.addListener(() => {
- chrome.contextMenus.create(contextMenuObject);
-})
+chrome.contextMenus.create(contextMenuObject);
 
+console.log('contextMenus SetUp')
 chrome.contextMenus.onClicked.addListener(onClickContextMenuHandler);
+
